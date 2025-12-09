@@ -32,11 +32,11 @@ public class AuthService : IAuthService
         // 1. Buscar usuario por email
         var usuario = await _usuarioRepository.GetByEmailAsync(loginDto.Email);
         if (usuario == null)
-            throw new UnauthorizedAccessException("Credenciales inválidas");
+            throw new UnauthorizedAccessException("Credenciales inválidas no existe correo");
         
         // 2. Verificar password
         if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, usuario.PasswordHash))
-            throw new UnauthorizedAccessException("Credenciales inválidas");
+            throw new UnauthorizedAccessException("Credenciales inválidas no es la pass");
         
         // 3. Generar JWT token
         var token = GenerateJwtToken(usuario);
@@ -193,11 +193,13 @@ public class AuthService : IAuthService
         
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         
+        string roleName = usuario.RoleId == 1 ? "Admin" : "Empleado";
+    
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.RoleId.ToString())
+            new Claim(ClaimTypes.Role, roleName) // ← Usar nombre, no ID
         };
         
         // Agregar claim de empleadoId si existe

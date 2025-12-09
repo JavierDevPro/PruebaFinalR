@@ -13,16 +13,16 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
+    
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
-            
+        
         // Registrar repositorios
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
+        services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
         services.AddScoped<IRepository<Role>, RoleRepository>();
-        services.AddScoped<IRepository<Departamento>, DepartamentoRepository>();
-            
+        
         return services;
     }
 }

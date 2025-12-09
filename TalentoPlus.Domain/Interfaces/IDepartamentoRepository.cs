@@ -2,11 +2,9 @@ using TalentoPlus.Domain.Entities;
 
 namespace TalentoPlus.Domain.Interfaces;
 
-public interface IDepartamentoRepository
+public interface IDepartamentoRepository : IRepository<Departamento> 
 {
-    Task<IEnumerable<Departamento>> GetAllAsync();
-    Task<Departamento?> GetByIdAsync(int id);
-    Task<Departamento> CreateAsync(Departamento entity);
-    Task UpdateAsync(Departamento entity);
-    Task DeleteAsync(Departamento entity);
+    // Ya no necesitas repetir los métodos básicos
+    // Solo métodos específicos si los necesitas
+    Task<Departamento?> GetByNombreAsync(string nombre);
 }

@@ -20,40 +20,33 @@ public class AppDbContext : DbContext
         // ========== CONFIGURACIONES DE USUARIO ==========
         modelBuilder.Entity<Usuario>(entity =>
         {
-            // Índice único para Email
             entity.HasIndex(u => u.Email).IsUnique();
-            
+        
             // Relación con Role
             entity.HasOne(u => u.Role)
-                  .WithMany(r => r.Usuarios)
-                  .HasForeignKey(u => u.RoleId)
-                  .OnDelete(DeleteBehavior.Restrict);
-            
-            // Relación 1:1 con Empleado
-            entity.HasOne(u => u.Empleado)
-                  .WithOne(e => e.Usuario)
-                  .HasForeignKey<Usuario>(u => u.EmpleadoId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
+                .WithMany(r => r.Usuarios)
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
         
+            // Relación 1:1 con Empleado - CONFIGURAR SOLO AQUÍ
+            entity.HasOne(u => u.Empleado)
+                .WithOne(e => e.Usuario)
+                .HasForeignKey<Usuario>(u => u.EmpleadoId) // FK en Usuario
+                .IsRequired(false) // Para permitir null (admin)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    
         // ========== CONFIGURACIONES DE EMPLEADO ==========
         modelBuilder.Entity<Empleado>(entity =>
         {
-            // Índices únicos
             entity.HasIndex(e => e.Documento).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
-            
+        
             // Relación con Departamento
             entity.HasOne(e => e.Departamento)
-                  .WithMany(d => d.Empleados)
-                  .HasForeignKey(e => e.DepartamentoId)
-                  .OnDelete(DeleteBehavior.Restrict);
-            
-            // Relación 1:1 con Usuario
-            entity.HasOne(e => e.Usuario)
-                  .WithOne(u => u.Empleado)
-                  .HasForeignKey<Empleado>(e => e.UsuarioId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                .WithMany(d => d.Empleados)
+                .HasForeignKey(e => e.DepartamentoId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
         
         // ========== CONFIGURACIONES DE ROLE ==========
@@ -91,7 +84,7 @@ public class AppDbContext : DbContext
             {
                 Id = 1,
                 Email = "admin@talento.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"), // Hasheado correctamente
+                PasswordHash = "$2a$11$YtDlCP2ptE31.Zm2zUcOxuTgpof3SBgpv4kuIxP0BFFLTgq0HGXwO", 
                 RoleId = 1, // Admin
                 EmpleadoId = null, // Admin no tiene empleado asociado
                 RefreshToken = null,

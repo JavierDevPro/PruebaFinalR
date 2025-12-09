@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using TalentoPlus.Domain.Entities;
-using TalentoPlus.Domain.Interfaces;
+using TalentoPlus.Domain.Interfaces;  // ← Asegúrate este using
 using TalentoPlus.Infrastructure.Data;
 
 namespace TalentoPlus.Infrastructure.Repositories;
 
-public class DepartamentoRepository : IRepository<Departamento>
+public class DepartamentoRepository : IDepartamentoRepository
 {
     private readonly AppDbContext _context;
     
@@ -41,5 +41,11 @@ public class DepartamentoRepository : IRepository<Departamento>
     {
         _context.Departamentos.Remove(entity);
         await _context.SaveChangesAsync();
+    }
+    
+    public async Task<Departamento?> GetByNombreAsync(string nombre)
+    {
+        return await _context.Departamentos
+            .FirstOrDefaultAsync(d => d.Nombre == nombre);
     }
 }

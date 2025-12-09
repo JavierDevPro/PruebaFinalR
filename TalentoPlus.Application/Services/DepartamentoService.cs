@@ -1,6 +1,5 @@
 using TalentoPlus.Application.Interfaces;
 using TalentoPlus.Domain.Interfaces;
-
 namespace TalentoPlus.Application.Services;
 
 public class DepartamentoService : IDepartamentoService

@@ -19,12 +19,12 @@ public class EmpleadosController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "1")] // Solo Admin (RoleId = 1)
+    [Authorize(Roles = "Admin")] // Solo Admin (RoleId = 1)
     public async Task<ActionResult<IEnumerable<EmpleadoDto>>> GetAll()
     {
         try
         {
-            var empleados = await _empleadoService.GetAllEmpleadosAsync();
+            var empleados = await _empleadoService.GetAllAsync();
             return Ok(empleados);
         }
         catch (Exception ex)
@@ -50,7 +50,7 @@ public class EmpleadosController : ControllerBase
                     return Forbid();
             }
             
-            var empleado = await _empleadoService.GetEmpleadoByIdAsync(id);
+            var empleado = await _empleadoService.GetByIdAsync(id);
             if (empleado == null)
                 return NotFound();
                 
@@ -71,7 +71,7 @@ public class EmpleadosController : ControllerBase
             if (string.IsNullOrEmpty(empleadoId) || !int.TryParse(empleadoId, out int id))
                 return Unauthorized();
                 
-            var empleado = await _empleadoService.GetEmpleadoByIdAsync(id);
+            var empleado = await _empleadoService.GetByIdAsync(id);
             if (empleado == null)
                 return NotFound();
                 
@@ -103,12 +103,12 @@ public class EmpleadosController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Roles = "1")] // Solo Admin
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<EmpleadoDto>> Create([FromBody] CreateEmpleadoDto dto)
     {
         try
         {
-            var empleado = await _empleadoService.CreateEmpleadoAsync(dto);
+            var empleado = await _empleadoService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = empleado.Id }, empleado);
         }
         catch (ArgumentException ex)
@@ -122,12 +122,12 @@ public class EmpleadosController : ControllerBase
     }
     
     [HttpPut("{id}")]
-    [Authorize(Roles = "1")] // Solo Admin
+    [Authorize(Roles = "Admin")] // Solo Admin
     public async Task<ActionResult> Update(int id, [FromBody] UpdateEmpleadoDto dto)
     {
         try
         {
-            await _empleadoService.UpdateEmpleadoAsync(id, dto);
+            await _empleadoService.UpdateAsync(id, dto);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -141,12 +141,12 @@ public class EmpleadosController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    [Authorize(Roles = "1")] // Solo Admin
+    [Authorize(Roles = "Admin")] // Solo Admin
     public async Task<ActionResult> Delete(int id)
     {
         try
         {
-            await _empleadoService.DeleteEmpleadoAsync(id);
+            await _empleadoService.DeleteAsync(id);
             return NoContent();
         }
         catch (ArgumentException ex)
