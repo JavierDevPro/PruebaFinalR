@@ -7,6 +7,9 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     
+    // DbSets
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<Role> Roles => Set<Role>();
     public DbSet<Empleado> Empleados => Set<Empleado>();
     public DbSet<Departamento> Departamentos => Set<Departamento>();
     
@@ -14,23 +17,66 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        // Índices únicos
-        modelBuilder.Entity<Empleado>()
-            .HasIndex(e => e.Documento)
-            .IsUnique();
+        // ========== CONFIGURACIONES DE USUARIO ==========
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            // Índice único para Email
+            entity.HasIndex(u => u.Email).IsUnique();
             
-        modelBuilder.Entity<Empleado>()
-            .HasIndex(e => e.Email)
-            .IsUnique();
+            // Relación con Role
+            entity.HasOne(u => u.Role)
+                  .WithMany(r => r.Usuarios)
+                  .HasForeignKey(u => u.RoleId)
+                  .OnDelete(DeleteBehavior.Restrict);
             
-        // Relaciones
-        modelBuilder.Entity<Empleado>()
-            .HasOne(e => e.Departamento)
-            .WithMany(d => d.Empleados)
-            .HasForeignKey(e => e.DepartamentoId)
-            .OnDelete(DeleteBehavior.Restrict);
+            // Relación 1:1 con Empleado
+            entity.HasOne(u => u.Empleado)
+                  .WithOne(e => e.Usuario)
+                  .HasForeignKey<Usuario>(u => u.EmpleadoId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // ========== CONFIGURACIONES DE EMPLEADO ==========
+        modelBuilder.Entity<Empleado>(entity =>
+        {
+            // Índices únicos
+            entity.HasIndex(e => e.Documento).IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
             
-        // Seed de departamentos
+            // Relación con Departamento
+            entity.HasOne(e => e.Departamento)
+                  .WithMany(d => d.Empleados)
+                  .HasForeignKey(e => e.DepartamentoId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Relación 1:1 con Usuario
+            entity.HasOne(e => e.Usuario)
+                  .WithOne(u => u.Empleado)
+                  .HasForeignKey<Empleado>(e => e.UsuarioId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // ========== CONFIGURACIONES DE ROLE ==========
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasIndex(r => r.Nombre).IsUnique();
+        });
+        
+        // ========== CONFIGURACIONES DE DEPARTAMENTO ==========
+        modelBuilder.Entity<Departamento>(entity =>
+        {
+            entity.HasIndex(d => d.Nombre).IsUnique();
+        });
+        
+        // ========== SEED DATA ==========
+        
+        // Seed de Roles
+        modelBuilder.Entity<Role>().HasData(
+            new Role { Id = 1, Nombre = "Admin", Descripcion = "Administrador del sistema" },
+            new Role { Id = 2, Nombre = "Empleado", Descripcion = "Empleado de la empresa" }
+        );
+        
+        // Seed de Departamentos (5 departamentos)
         modelBuilder.Entity<Departamento>().HasData(
             new Departamento { Id = 1, Nombre = "Recursos Humanos", Descripcion = "Gestión de personal" },
             new Departamento { Id = 2, Nombre = "Tecnología", Descripcion = "Desarrollo y soporte IT" },
@@ -39,29 +85,21 @@ public class AppDbContext : DbContext
             new Departamento { Id = 5, Nombre = "Logística", Descripcion = "Cadena de suministro" }
         );
         
-        // Seed de admin - FECHAS CON DateTimeKind.Utc
-        modelBuilder.Entity<Empleado>().HasData(
-            new Empleado
+        // Seed de Usuario Admin (sin empleado asociado)
+        modelBuilder.Entity<Usuario>().HasData(
+            new Usuario
             {
                 Id = 1,
-                Documento = "12345678",
-                Nombres = "Admin",
-                Apellidos = "Sistema",
                 Email = "admin@talento.com",
-                PasswordHash = "$2a$11$4R3M8XyZ1A2B3C4D5E6F7G8H9I0J1K2L3M4N5O6P7Q8R9S0T1U2V3W4X5Y6Z7", // Admin123!
-                Role = "Admin",
-                DepartamentoId = 1,
-                Cargo = "Administrador",
-                Salario = 0,
-                // FECHAS ESPECIFICANDO DateTimeKind.Utc
-                FechaIngreso = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                FechaNacimiento = new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                Estado = "Activo",
-                NivelEducativo = "Profesional",
-                Direccion = "Oficina Principal",
-                Telefono = "3001234567",
-                PerfilProfesional = "Administrador del sistema"
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"), // Hasheado correctamente
+                RoleId = 1, // Admin
+                EmpleadoId = null, // Admin no tiene empleado asociado
+                RefreshToken = null,
+                RefreshTokenExpire = null
             }
         );
+        
+        // NOTA: Ya NO hay seed de Empleado Admin porque Admin es solo Usuario
+        // Los empleados se importarán desde el Excel
     }
 }

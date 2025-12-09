@@ -5,7 +5,7 @@ using TalentoPlus.Infrastructure.Data;
 
 namespace TalentoPlus.Infrastructure.Repositories;
 
-public class DepartamentoRepository : IDepartamentoRepository
+public class DepartamentoRepository : IRepository<Departamento>
 {
     private readonly AppDbContext _context;
     
@@ -14,14 +14,14 @@ public class DepartamentoRepository : IDepartamentoRepository
         _context = context;
     }
     
-    public async Task<Departamento?> GetByIdAsync(int id)
-    {
-        return await _context.Departamentos.FindAsync(id);
-    }
-    
     public async Task<IEnumerable<Departamento>> GetAllAsync()
     {
         return await _context.Departamentos.ToListAsync();
+    }
+    
+    public async Task<Departamento?> GetByIdAsync(int id)
+    {
+        return await _context.Departamentos.FindAsync(id);
     }
     
     public async Task<Departamento> CreateAsync(Departamento entity)

@@ -22,9 +22,9 @@ public class DepartamentosController : ControllerBase
             var departamentos = await _departamentoService.GetAllDepartamentosAsync();
             return Ok(departamentos);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return StatusCode(500, "Error al obtener departamentos");
+            return StatusCode(500, $"Error: {ex.Message}");
         }
     }
 }

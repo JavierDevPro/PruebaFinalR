@@ -1,30 +1,22 @@
-using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TalentoPlus.Application.Interfaces;
 using TalentoPlus.Application.Services;
-using TalentoPlus.Domain.Interfaces;
 using TalentoPlus.Infrastructure;
 using TalentoPlus.Infrastructure.Data;
-using TalentoPlus.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Repositories
-builder.Services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
-builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
-
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
-// AutoMapper
-builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(TalentoPlus.Application.Mapping.MappingProfile)));
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -46,18 +38,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger
+// Swagger con JWT
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TalentoPlus API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "TalentoPlus API", 
+        Version = "v1",
+        Description = "API para gestión de empleados"
+    });
     
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
+        In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header
+        Scheme = "Bearer"
     });
     
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -93,7 +90,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TalentoPlus API v1");
+        c.RoutePrefix = string.Empty; // Swagger en raíz
+    });
 }
 
 app.UseHttpsRedirection();
@@ -102,41 +103,23 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Seed admin if not exists
+// Seed data
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     
-    // Ensure database is created
-    dbContext.Database.EnsureCreated();
+    // Aplicar migraciones automáticamente
+    dbContext.Database.Migrate();
     
-    // Seed admin if not exists
-    if (!dbContext.Empleados.Any(e => e.Role == "Admin"))
+    // Verificar si ya hay datos seed
+    if (!dbContext.Roles.Any())
     {
-        var admin = new TalentoPlus.Domain.Entities.Empleado
-        {
-            Documento = "12345678",
-            Nombres = "Admin",
-            Apellidos = "Sistema",
-            Email = "admin@talento.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-            Role = "Admin",
-            DepartamentoId = 1,
-            Cargo = "Administrador",
-            Salario = 0,
-            FechaIngreso = DateTime.UtcNow,
-            FechaNacimiento = new DateTime(1980, 1, 1),
-            Estado = "Activo",
-            NivelEducativo = "Profesional",
-            Direccion = "Oficina Principal",
-            Telefono = "3001234567",
-            PerfilProfesional = "Administrador del sistema"
-        };
-        
-        dbContext.Empleados.Add(admin);
-        dbContext.SaveChanges();
-        Console.WriteLine("Admin user created: admin@talento.com / Admin123!");
+        // Los datos seed ya están configurados en OnModelCreating
+        // Entity Framework los aplicará automáticamente
+        Console.WriteLine("Base de datos migrada y datos seed aplicados");
     }
+    
+    Console.WriteLine("Admin creado: admin@talento.com / Admin123!");
 }
 
 app.Run();

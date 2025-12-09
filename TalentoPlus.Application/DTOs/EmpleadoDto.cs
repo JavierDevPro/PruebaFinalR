@@ -16,9 +16,9 @@ public class EmpleadoDto
     public string Estado { get; set; } = string.Empty;
     public string NivelEducativo { get; set; } = string.Empty;
     public string PerfilProfesional { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
     public int DepartamentoId { get; set; }
     public string DepartamentoNombre { get; set; } = string.Empty;
+    public bool TieneUsuario { get; set; }
 }
 
 public class CreateEmpleadoDto
@@ -36,8 +36,6 @@ public class CreateEmpleadoDto
     public string Estado { get; set; } = "Activo";
     public string NivelEducativo { get; set; } = "Profesional";
     public string PerfilProfesional { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string Role { get; set; } = "Empleado";
     public int DepartamentoId { get; set; }
 }
 
@@ -55,16 +53,10 @@ public class UpdateEmpleadoDto
     public int DepartamentoId { get; set; }
 }
 
-public class LoginEmpleadoDto
+public class DashboardStatsDto
 {
-    public string Documento { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
-
-public class AuthResponseDto
-{
-    public string Token { get; set; } = string.Empty;
-    public DateTime Expires { get; set; }
-    public EmpleadoDto Empleado { get; set; } = null!;
+    public int TotalEmpleados { get; set; }
+    public int EmpleadosVacaciones { get; set; }
+    public int EmpleadosActivos { get; set; }
+    public Dictionary<string, int> EmpleadosPorDepartamento { get; set; } = new();
 }

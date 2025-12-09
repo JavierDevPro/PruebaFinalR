@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace TalentoPlus.Domain.Entities;
@@ -35,17 +34,17 @@ public class Empleado
     
     public DateTime FechaIngreso { get; set; }
     
-    // Enums como strings para DB
     public string Estado { get; set; } = "Activo"; // "Activo", "Vacaciones", "Inactivo"
-    public string NivelEducativo { get; set; } = "Profesional"; // "Bachiller", "Tecnologo", etc.
+    
+    public string NivelEducativo { get; set; } = "Profesional"; // "Bachiller", "Tecnologo", "Profesional", "Especializacion", "Maestria", "Doctorado"
     
     public string PerfilProfesional { get; set; } = string.Empty;
     
-    // AUTENTICACIÓN
-    public string? PasswordHash { get; set; } // Hashed password para empleados
-    public string Role { get; set; } = "Empleado"; // "Admin" o "Empleado"
-    
-    // RELACIONES
+    // Relaciones
     public int DepartamentoId { get; set; }
     public virtual Departamento? Departamento { get; set; }
+    
+    // Relación con Usuario (opcional)
+    public int? UsuarioId { get; set; }
+    public virtual Usuario? Usuario { get; set; }
 }

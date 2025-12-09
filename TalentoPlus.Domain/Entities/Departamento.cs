@@ -12,5 +12,6 @@ public class Departamento
     [MaxLength(500)]
     public string Descripcion { get; set; } = string.Empty;
     
+    // Navigation
     public virtual ICollection<Empleado> Empleados { get; set; } = new List<Empleado>();
 }

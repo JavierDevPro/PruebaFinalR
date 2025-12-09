@@ -14,18 +14,20 @@ public class EmpleadoRepository : IEmpleadoRepository
         _context = context;
     }
     
-    public async Task<Empleado?> GetByIdAsync(int id)
-    {
-        return await _context.Empleados
-            .Include(e => e.Departamento)
-            .FirstOrDefaultAsync(e => e.Id == id);
-    }
-    
     public async Task<IEnumerable<Empleado>> GetAllAsync()
     {
         return await _context.Empleados
             .Include(e => e.Departamento)
+            .Include(e => e.Usuario)
             .ToListAsync();
+    }
+    
+    public async Task<Empleado?> GetByIdAsync(int id)
+    {
+        return await _context.Empleados
+            .Include(e => e.Departamento)
+            .Include(e => e.Usuario)
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
     
     public async Task<Empleado> CreateAsync(Empleado entity)
@@ -51,6 +53,7 @@ public class EmpleadoRepository : IEmpleadoRepository
     {
         return await _context.Empleados
             .Include(e => e.Departamento)
+            .Include(e => e.Usuario)
             .FirstOrDefaultAsync(e => e.Documento == documento);
     }
     
@@ -58,7 +61,17 @@ public class EmpleadoRepository : IEmpleadoRepository
     {
         return await _context.Empleados
             .Include(e => e.Departamento)
+            .Include(e => e.Usuario)
             .FirstOrDefaultAsync(e => e.Email == email);
+    }
+    
+    public async Task<Empleado?> GetWithUsuarioAsync(int id)
+    {
+        return await _context.Empleados
+            .Include(e => e.Departamento)
+            .Include(e => e.Usuario)
+            .ThenInclude(u => u!.Role)
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
     
     public async Task<bool> DocumentoExistsAsync(string documento)
@@ -88,5 +101,13 @@ public class EmpleadoRepository : IEmpleadoRepository
             .GroupBy(e => e.Departamento!.Nombre)
             .Select(g => new { Departamento = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Departamento, x => x.Count);
+    }
+    
+    public async Task<IEnumerable<Empleado>> GetByDepartamentoIdAsync(int departamentoId)
+    {
+        return await _context.Empleados
+            .Where(e => e.DepartamentoId == departamentoId)
+            .Include(e => e.Departamento)
+            .ToListAsync();
     }
 }
