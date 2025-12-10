@@ -2,11 +2,12 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using TalentoPlus.Application.DTOs;
+using TalentoPlus.Application.Interfaces;
 using TalentoPlus.Domain.Entities;
 
 namespace TalentoPlus.Application.Services;
 
-public class PdfService
+public class PdfService : IPdfService
 {
     public byte[] GenerateHojaDeVida(EmpleadoDto empleado)
     {

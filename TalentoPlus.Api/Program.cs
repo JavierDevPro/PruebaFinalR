@@ -15,6 +15,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
 
