@@ -10,15 +10,21 @@ public class EmpleadoService : IEmpleadoService
     private readonly IEmpleadoRepository _empleadoRepository;
     private readonly IDepartamentoRepository _departamentoRepository;
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly PdfService _pdfService;
+    private readonly EmailService _emailService;
     
     public EmpleadoService(
         IEmpleadoRepository empleadoRepository,
         IDepartamentoRepository departamentoRepository,
-        IUsuarioRepository usuarioRepository)
+        IUsuarioRepository usuarioRepository,
+        PdfService pdfService,
+        EmailService emailService)
     {
         _empleadoRepository = empleadoRepository;
         _departamentoRepository = departamentoRepository;
         _usuarioRepository = usuarioRepository;
+        _pdfService = pdfService;
+        _emailService = emailService;
     }
     
     public async Task<IEnumerable<EmpleadoDto>> GetAllAsync()
@@ -68,6 +74,12 @@ public class EmpleadoService : IEmpleadoService
         };
         
         var created = await _empleadoRepository.CreateAsync(empleado);
+
+        var subject = "Bienvenido a TalentoPlus Registro habilitado";
+        var body =
+            $"Hola {created.Nombres} se confirma la creacion te su registro en la plataforma de empleados ya puedes registrarte como usuario y disponer de todas nuestras funcionalidades en :\n http://localhost:8086/";
+
+        await _emailService.sendAsync(created.Email, subject, body);
         return MapToDto(created);
     }
     
@@ -126,18 +138,9 @@ public class EmpleadoService : IEmpleadoService
             throw new ArgumentException($"Empleado con ID {empleadoId} no encontrado");
         
         // PDF simple temporal
-        var pdfContent = $"HOJA DE VIDA\n" +
-                        $"============\n" +
-                        $"Documento: {empleado.Documento}\n" +
-                        $"Nombre: {empleado.Nombres} {empleado.Apellidos}\n" +
-                        $"Email: {empleado.Email}\n" +
-                        $"Cargo: {empleado.Cargo}\n" +
-                        $"Departamento: {empleado.Departamento?.Nombre}\n" +
-                        $"Salario: ${empleado.Salario:N0}\n" +
-                        $"Estado: {empleado.Estado}\n" +
-                        $"Generado: {DateTime.Now:yyyy-MM-dd HH:mm}";
+        var pdfContent = _pdfService.GenerateHojaDeVida(MapToDto(empleado));
         
-        return System.Text.Encoding.UTF8.GetBytes(pdfContent);
+        return pdfContent;
     }
     
     public async Task ImportFromExcelAsync(Stream excelStream)
